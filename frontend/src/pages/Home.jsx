@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Navbar from '../components/Navbar/Navbar';
+import Hero from '../components/Hero/Hero';
 
 const address = process.env.REACT_APP_ADDRESS;
 
-function App() {
+function Home() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -19,10 +21,13 @@ function App() {
   }, []);
 
   return (
-    <div>
-      <h1>{message}</h1>
-    </div>
+    <>
+      <Navbar />
+      <Hero />
+      {message}
+    </>
+    
   );
 }
 
-export default App;
+export default Home;
