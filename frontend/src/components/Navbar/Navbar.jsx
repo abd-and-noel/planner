@@ -33,6 +33,7 @@ const Navbar = () => {
           backgroundColor: '#fff',
           color: '#333',
           borderBottom: '1px solid #e0e0e0',
+          height: { xs: 56, sm: 64 },
         }}
       >
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
