@@ -24,7 +24,7 @@ function Home() {
     <>
       <Navbar />
       <Hero />
-      {message}
+      {/* {message} */}
     </>
     
   );
