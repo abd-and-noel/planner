@@ -8,6 +8,7 @@ import {
     useTheme,
     useMediaQuery
 } from '@mui/material';
+import {Link} from 'react-router-dom';
 import calendarImage from '../../assets/images/calendarImage.jpeg';
 
 const Hero = () => {
@@ -88,10 +89,10 @@ const Hero = () => {
                                     flexWrap: 'wrap',
                                 }}
                             >
-                                <Button variant="contained" size="large">
+                                <Button component = {Link} to = '/login' variant="contained" size="large">
                                     Log In
                                 </Button>
-                                <Button variant="outlined" size="large">
+                                <Button component = {Link} to = '/signup' variant="outlined" size="large">
                                     Sign Up
                                 </Button>
                             </Box>

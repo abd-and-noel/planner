@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import {Link} from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -10,6 +11,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemButton,
   useTheme,
   useMediaQuery
 } from '@mui/material';
@@ -51,10 +53,10 @@ const Navbar = () => {
           {/* Desktop Menu */}
           {!isMobile && (
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button variant="text" sx={{ color: '#1976d2' }}>
+              <Button component = {Link} to = '/login' variant="text" sx={{ color: '#1976d2' }}>
                 Log In
               </Button>
-              <Button variant="contained" sx={{ bgcolor: '#1976d2' }}>
+              <Button component = {Link} to = "/signup" variant="contained" sx={{ bgcolor: '#1976d2' }}>
                 Sign Up
               </Button>
             </Box>
@@ -72,11 +74,27 @@ const Navbar = () => {
       {/* Mobile Drawer */}
       <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
         <List sx={{ width: 200 }}>
-          <ListItem button>
-            <ListItemText primary="Log In" />
+          <ListItem disablePadding>
+            <ListItemButton component={Link}
+        to="/login"
+        sx={{ textDecoration: 'none', color: 'inherit', transition: 'transform 0.1s ease-in-out, background-color 0.2s ease-in-out',
+    '&:active': {
+      backgroundColor: '#e0e0e0',
+      transform: 'scale(0.98)',
+    },}}>
+              <ListItemText primary="Log in" />
+            </ListItemButton>
           </ListItem>
-          <ListItem button>
-            <ListItemText primary="Sign Up" />
+          <ListItem disablePadding>
+            <ListItemButton component={Link}
+        to="/login"
+        sx={{ textDecoration: 'none', color: 'inherit', transition: 'transform 0.1s ease-in-out, background-color 0.2s ease-in-out',
+    '&:active': {
+      backgroundColor: '#e0e0e0',
+      transform: 'scale(0.98)',
+    },}}>
+              <ListItemText primary="Sign up" />
+            </ListItemButton>
           </ListItem>
         </List>
       </Drawer>
