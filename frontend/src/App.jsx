@@ -3,6 +3,7 @@ import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Sign from './pages/Sign';
 import Home from './pages/Home';
 import Log from './pages/log';
+import Calendar from './pages/Calendar';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Route path= "/" element={<Home />} />
       <Route path="/signup" element = {<Sign/>}/>
       <Route path="/login" element = {<Log/>}/>
+      <Route path="/calendar" element = {<Calendar/>}/>
     </Routes>
   </Router>
   );

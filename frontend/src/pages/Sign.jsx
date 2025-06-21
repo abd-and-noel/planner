@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import {
   Box,
   Button,
@@ -11,9 +12,14 @@ import {
   TextField,
   Typography,
   Card as MuiCard,
+  LinearProgress,  // <-- NEW
+  Alert,           // <-- NEW
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Google as GoogleIcon, Facebook as FacebookIcon } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+
+const address = process.env.REACT_APP_ADDRESS;
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -42,6 +48,9 @@ export default function SignUp() {
     email: '',
     password: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
+  const navigate = useNavigate();
 
   const validate = () => {
     const name = document.getElementById('name')?.value || '';
@@ -67,18 +76,34 @@ export default function SignUp() {
     return isValid;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const formData = new FormData(e.currentTarget);
-    console.log({
-      name: formData.get('name'),
-      email: formData.get('email'),
-      password: formData.get('password'),
-    });
+    setLoading(true);
+    setServerError('');
 
-    // TODO: Send data to backend
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      const response = await axios.post(`http://${address}:8000/api/signup/`, {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+      });
+
+      navigate('/Calendar');
+
+    } catch (error) {
+      console.log()
+      if (error.response.data.error.includes("already exists")) {
+        setServerError("An account with this email already exists.");
+      } else {
+        setServerError('Signup failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,9 +112,15 @@ export default function SignUp() {
       <SignUpContainer>
         <Box width="100%" maxWidth={{ xs: '100%', sm: 500 }}>
           <Card>
+            {loading && <LinearProgress />} {/* NEW: Progress bar */}
+
             <Typography variant="h4" textAlign="center">
               Create an Account
             </Typography>
+
+            {serverError && (  // NEW: Alert box for errors
+              <Alert severity="error">{serverError}</Alert>
+            )}
 
             <Box
               component="form"
@@ -137,8 +168,13 @@ export default function SignUp() {
                 />
               </FormControl>
 
-              <Button type="submit" variant="contained" fullWidth>
-                Sign up
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={loading}
+              >
+                {loading ? 'Signing up...' : 'Sign up'}
               </Button>
 
               <Typography textAlign="center">
