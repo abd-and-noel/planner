@@ -11,9 +11,15 @@ import {
   TextField,
   Typography,
   Card as MuiCard,
+  LinearProgress,
+  Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Google as GoogleIcon, Facebook as FacebookIcon } from '@mui/icons-material';
+import { Google as GoogleIcon} from '@mui/icons-material';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const address = process.env.REACT_APP_ADDRESS
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -41,6 +47,9 @@ export default function Login() {
     email: '',
     password: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
+  const navigate = useNavigate();
 
   const validate = () => {
     const email = document.getElementById('email')?.value || '';
@@ -61,18 +70,40 @@ export default function Login() {
     return isValid;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if( !validate()) return;
+
+    setLoading(true);
+    setServerError('');
 
     const formData = new FormData(e.currentTarget);
-    console.log({
-      email: formData.get('email'),
-      password: formData.get('password'),
-    });
+    const email = formData.get('email');
+    const password = formData.get('password');
 
-    // TODO: Connect to Django backend
-  };
+    try{
+      const response = await axios.post(`http://${address}:8000/api/login/`,{
+        email: email,
+        password: password,
+      });
+
+      const token = response.data.access;
+      localStorage.setItem('token', token);
+
+      navigate('/Calendar')
+    }
+    catch (error) {
+      if(error.response && error.response.status === 401) {
+        setServerError('Invalid email or password. Please try again.');
+      }
+      else{
+        setServerError('An error occurred while logging in. Please try again later.');
+      }
+    }
+    finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <>
@@ -80,9 +111,14 @@ export default function Login() {
       <LoginContainer>
         <Box width="100%" maxWidth={{ xs: '100%', sm: 500 }}>
           <Card>
+            {loading && <LinearProgress />}
             <Typography variant="h4" textAlign="center">
               Log in to Calendra
             </Typography>
+
+            {serverError && (
+              <Alert severity="error">{serverError}</Alert>
+            )}
 
             <Box
               component="form"
@@ -133,9 +169,6 @@ export default function Login() {
 
             <Button fullWidth variant="outlined" startIcon={<GoogleIcon />}>
               Log in with Google
-            </Button>
-            <Button fullWidth variant="outlined" startIcon={<FacebookIcon />}>
-              Log in with Facebook
             </Button>
           </Card>
         </Box>

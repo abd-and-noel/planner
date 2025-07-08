@@ -16,7 +16,7 @@ import {
   Alert,           // <-- NEW
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Google as GoogleIcon, Facebook as FacebookIcon } from '@mui/icons-material';
+import { Google as GoogleIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 const address = process.env.REACT_APP_ADDRESS;
@@ -188,10 +188,7 @@ export default function SignUp() {
             <Divider sx={{ my: 2 }}>or</Divider>
 
             <Button fullWidth variant="outlined" startIcon={<GoogleIcon />}>
-              Sign up with Google
-            </Button>
-            <Button fullWidth variant="outlined" startIcon={<FacebookIcon />}>
-              Sign up with Facebook
+              Sign up with Google Not functional yet
             </Button>
           </Card>
         </Box>
