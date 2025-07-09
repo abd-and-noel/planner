@@ -1,9 +1,8 @@
 import React from "react";
+import Navbar from "../components/Dashboard/Navbar";
 
 export default function Dashboard(){
     return(
-        <h1>
-            hello, user
-        </h1>
+        <Navbar />
     );
 }
