@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -18,6 +18,7 @@ import { styled } from '@mui/material/styles';
 import { Google as GoogleIcon} from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { isAuthenticated } from '../utils/isAuthenticated.jsx';
 
 const address = process.env.REACT_APP_ADDRESS
 
@@ -50,6 +51,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const validate = () => {
     const email = document.getElementById('email')?.value || '';
@@ -70,6 +72,11 @@ export default function Login() {
     return isValid;
   };
 
+  useEffect(() => {
+    if(isLoggedIn || isAuthenticated()){
+      navigate('/Dashboard');
+    }
+  }, [isLoggedIn, navigate]);
   const handleSubmit = async (e) => {
     e.preventDefault();
     if( !validate()) return;
@@ -87,10 +94,13 @@ export default function Login() {
         password: password,
       });
 
-      const token = response.data.access;
-      localStorage.setItem('token', token);
+      const access = response.data.access;
+      const refresh = response.data.refresh;
 
-      navigate('/Calendar')
+      localStorage.setItem('access', access);
+      localStorage.setItem('refresh', refresh);
+
+      setIsLoggedIn(true);
     }
     catch (error) {
       if(error.response && error.response.status === 401) {

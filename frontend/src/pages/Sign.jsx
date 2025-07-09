@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import API from '../utils/axios';
 import {
   Box,
   Button,
@@ -17,9 +17,8 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Google as GoogleIcon } from '@mui/icons-material';
+import { isAuthenticated } from '../utils/isAuthenticated.jsx';
 import { useNavigate } from 'react-router-dom';
-
-const address = process.env.REACT_APP_ADDRESS;
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -50,6 +49,7 @@ export default function SignUp() {
   });
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
   const validate = () => {
@@ -76,6 +76,13 @@ export default function SignUp() {
     return isValid;
   };
 
+
+  useEffect(() => {
+      if(isLoggedIn || isAuthenticated()){
+        navigate('/dashboard');
+      }
+    }, [isLoggedIn, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -84,23 +91,33 @@ export default function SignUp() {
     setServerError('');
 
     const formData = new FormData(e.currentTarget);
+    const name = formData.get('name');
+    const email = formData.get('email');
+    const password = formData.get('password');
 
     try {
-      const response = await axios.post(`http://${address}:8000/api/signup/`, {
-        name: formData.get('name'),
-        email: formData.get('email'),
-        password: formData.get('password'),
+      const response = await API.post(`/api/signup/`, {
+        name,
+        email,
+        password,
       });
 
-      navigate('/Calendar');
+      localStorage.setItem('access', response.data.access);
+      localStorage.setItem('refresh', response.data.refresh);
+
+      setIsLoggedIn(true);
 
     } catch (error) {
-      console.log()
-      if (error.response.data.error.includes("already exists")) {
-        setServerError("An account with this email already exists.");
-      } else {
-        setServerError('Signup failed. Please try again.');
-      }
+      if (
+    error.response &&
+    error.response.data &&
+    typeof error.response.data.error === "string" &&
+    error.response.data.error.includes("already exists")
+  ) {
+    setServerError("An account with this email already exists.");
+  } else {
+    setServerError('Signup failed. Please try again.');
+  }
     } finally {
       setLoading(false);
     }

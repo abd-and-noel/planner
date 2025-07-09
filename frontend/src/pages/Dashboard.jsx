@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Calendar(){
+export default function Dashboard(){
     return(
         <h1>
             hello, user
