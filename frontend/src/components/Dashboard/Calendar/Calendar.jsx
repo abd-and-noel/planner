@@ -4,59 +4,90 @@ import "tui-calendar/dist/tui-calendar.css";
 import { Box, useTheme, useMediaQuery } from "@mui/material";
 
 const CalendarView = () => {
+  const containerRef = useRef(null);
   const calendarRef = useRef(null);
-  const calendarInstance = useRef(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
 
   useEffect(() => {
-    if (calendarRef.current && !calendarInstance.current) {
-      calendarInstance.current = new Calendar(calendarRef.current, {
-        defaultView: "month",
-        taskView: true,
-        scheduleView: true,
-        useDetailPopup: true,
-        useCreationPopup: false,
-        usageStatistics: false,
-      });
+    if (!containerRef.current) return;
 
-      calendarInstance.current.createSchedules([
-        {
-          id: "1",
-          calendarId: "1",
-          title: "Sample Class",
-          category: "time",
-          start: new Date().toISOString(),
-          end: new Date(new Date().getTime() + 3600000).toISOString(),
-        },
-      ]);
-    }
+    // Delay initialization to next event loop tick
+    const initTimeout = setTimeout(() => {
+      if (!calendarRef.current) {
+        calendarRef.current = new Calendar(containerRef.current, {
+          defaultView: "month",
+          taskView: false,
+          scheduleView: ["time"],
+          useDetailPopup: true,
+          useCreationPopup: false,
+          usageStatistics: false,
+        });
+
+        calendarRef.current.createSchedules([
+          {
+            id: "1",
+            calendarId: "1",
+            title: "Sample Event",
+            category: "time",
+            start: new Date().toISOString(),
+            end: new Date(new Date().getTime() + 3600000).toISOString(),
+          },
+        ]);
+      }
+    }, 0);
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (calendarRef.current) {
+        calendarRef.current.render();
+      }
+    });
+
+    resizeObserver.observe(containerRef.current);
 
     return () => {
-      if (calendarInstance.current) {
-        calendarInstance.current.destroy();
-        calendarInstance.current = null;
+      clearTimeout(initTimeout);
+      if (calendarRef.current) {
+        calendarRef.current.destroy();
+        calendarRef.current = null;
       }
+      resizeObserver.disconnect();
     };
   }, []);
 
   return (
     <Box
-      ref={calendarRef}
       sx={{
         flexGrow: 1,
-        height: isMobile ? "calc(100vh - 128px)" : "calc(100vh - 100px)", // Adjust for navbar + maybe sidebar height
-        minHeight: 400,
+        height: isMobile
+          ? "calc(100vh - 160px)"
+          : isTablet
+          ? "calc(100vh - 140px)"
+          : "calc(100vh - 120px)",
         overflow: "hidden",
         backgroundColor: "#fff",
+        display: "flex",
+        flexDirection: "column",
+        boxSizing: "border-box",
         borderRadius: 2,
         boxShadow: 3,
-        m: 2,
-        boxSizing: "border-box",
-        display: "flex",          // Important: Make container flexbox to allow full height
-        flexDirection: "column",  // and column to layout calendar properly
+        p: { xs: 1, sm: 2, md: 3 }, // padding inside the container for spacing
+        m: { xs: 1, sm: 2 },        // margin to give breathing space from the edge
       }}
-    />
+    >
+      <div
+        ref={containerRef}
+        style={{
+          flex: 1,
+          width: "100%",
+          height: "100%",
+          margin: 0,
+          padding: 0,
+          boxSizing: "border-box",
+        }}
+      />
+    </Box>
   );
 };
 

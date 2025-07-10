@@ -15,12 +15,12 @@ import {
   Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Google as GoogleIcon} from '@mui/icons-material';
+import { Google as GoogleIcon } from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { isAuthenticated } from '../utils/isAuthenticated.jsx';
+import { isAuthenticatedAsync } from '../utils/isAuthenticated.jsx';
 
-const address = process.env.REACT_APP_ADDRESS
+const address = process.env.REACT_APP_ADDRESS;
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -73,13 +73,22 @@ export default function Login() {
   };
 
   useEffect(() => {
-    if(isLoggedIn || isAuthenticated()){
-      navigate('/Dashboard');
-    }
+    const checkAuth = async () => {
+      if (isLoggedIn) {
+        navigate('/Dashboard');
+        return;
+      }
+      const valid = await isAuthenticatedAsync();
+      if (valid) {
+        navigate('/Dashboard');
+      }
+    };
+    checkAuth();
   }, [isLoggedIn, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if( !validate()) return;
+    if (!validate()) return;
 
     setLoading(true);
     setServerError('');
@@ -88,8 +97,8 @@ export default function Login() {
     const email = formData.get('email');
     const password = formData.get('password');
 
-    try{
-      const response = await axios.post(`http://${address}:8000/api/login/`,{
+    try {
+      const response = await axios.post(`http://${address}:8000/api/login/`, {
         email: email,
         password: password,
       });
@@ -101,19 +110,16 @@ export default function Login() {
       localStorage.setItem('refresh', refresh);
 
       setIsLoggedIn(true);
-    }
-    catch (error) {
-      if(error.response && error.response.status === 401) {
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
         setServerError('Invalid email or password. Please try again.');
-      }
-      else{
+      } else {
         setServerError('An error occurred while logging in. Please try again later.');
       }
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <>
@@ -126,9 +132,7 @@ export default function Login() {
               Log in to Calendra
             </Typography>
 
-            {serverError && (
-              <Alert severity="error">{serverError}</Alert>
-            )}
+            {serverError && <Alert severity="error">{serverError}</Alert>}
 
             <Box
               component="form"

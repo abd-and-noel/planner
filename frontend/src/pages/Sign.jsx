@@ -12,12 +12,12 @@ import {
   TextField,
   Typography,
   Card as MuiCard,
-  LinearProgress,  // <-- NEW
-  Alert,           // <-- NEW
+  LinearProgress,
+  Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Google as GoogleIcon } from '@mui/icons-material';
-import { isAuthenticated } from '../utils/isAuthenticated.jsx';
+import { isAuthenticatedAsync } from '../utils/isAuthenticated.jsx'; // <-- async version
 import { useNavigate } from 'react-router-dom';
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -76,12 +76,19 @@ export default function SignUp() {
     return isValid;
   };
 
-
   useEffect(() => {
-      if(isLoggedIn || isAuthenticated()){
+    const checkAuth = async () => {
+      if (isLoggedIn) {
+        navigate('/dashboard');
+        return;
+      }
+      const valid = await isAuthenticatedAsync();
+      if (valid) {
         navigate('/dashboard');
       }
-    }, [isLoggedIn, navigate]);
+    };
+    checkAuth();
+  }, [isLoggedIn, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -106,18 +113,17 @@ export default function SignUp() {
       localStorage.setItem('refresh', response.data.refresh);
 
       setIsLoggedIn(true);
-
     } catch (error) {
       if (
-    error.response &&
-    error.response.data &&
-    typeof error.response.data.error === "string" &&
-    error.response.data.error.includes("already exists")
-  ) {
-    setServerError("An account with this email already exists.");
-  } else {
-    setServerError('Signup failed. Please try again.');
-  }
+        error.response &&
+        error.response.data &&
+        typeof error.response.data.error === 'string' &&
+        error.response.data.error.includes('already exists')
+      ) {
+        setServerError('An account with this email already exists.');
+      } else {
+        setServerError('Signup failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -129,15 +135,13 @@ export default function SignUp() {
       <SignUpContainer>
         <Box width="100%" maxWidth={{ xs: '100%', sm: 500 }}>
           <Card>
-            {loading && <LinearProgress />} {/* NEW: Progress bar */}
+            {loading && <LinearProgress />}
 
             <Typography variant="h4" textAlign="center">
               Create an Account
             </Typography>
 
-            {serverError && (  // NEW: Alert box for errors
-              <Alert severity="error">{serverError}</Alert>
-            )}
+            {serverError && <Alert severity="error">{serverError}</Alert>}
 
             <Box
               component="form"
@@ -185,12 +189,7 @@ export default function SignUp() {
                 />
               </FormControl>
 
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                disabled={loading}
-              >
+              <Button type="submit" variant="contained" fullWidth disabled={loading}>
                 {loading ? 'Signing up...' : 'Sign up'}
               </Button>
 
