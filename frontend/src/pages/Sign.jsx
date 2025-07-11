@@ -7,6 +7,8 @@ import {
   Divider,
   FormControl,
   FormLabel,
+  IconButton,
+  InputAdornment,
   Link,
   Stack,
   TextField,
@@ -16,8 +18,14 @@ import {
   Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Google as GoogleIcon } from '@mui/icons-material';
-import { isAuthenticatedAsync } from '../utils/isAuthenticated.jsx'; // <-- async version
+import {
+  Visibility,
+  VisibilityOff,
+  CheckCircle,
+  Cancel,
+  Google as GoogleIcon,
+} from '@mui/icons-material';
+import { isAuthenticatedAsync } from '../utils/isAuthenticated.jsx';
 import { useNavigate } from 'react-router-dom';
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -42,38 +50,41 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function SignUp() {
-  const [errors, setErrors] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
-  const validate = () => {
-    const name = document.getElementById('name')?.value || '';
-    const email = document.getElementById('email')?.value || '';
-    const password = document.getElementById('password')?.value || '';
-    const newErrors = { name: '', email: '', password: '' };
-    let isValid = true;
+  const passwordChecks = {
+    length: formData.password.length >= 8,
+    lowercase: /[a-z]/.test(formData.password),
+    uppercase: /[A-Z]/.test(formData.password),
+    number: /\d/.test(formData.password),
+    special: /[!@#$%^&*]/.test(formData.password),
+  };
 
-    if (!name.trim()) {
-      newErrors.name = 'Name is required.';
-      isValid = false;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Please enter a valid email.';
-      isValid = false;
-    }
-    if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters.';
-      isValid = false;
-    }
+  const allPasswordValid = Object.values(passwordChecks).every(Boolean);
+  const passwordsMatch = formData.password === formData.confirmPassword;
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) newErrors.name = 'Name is required.';
+    if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Enter a valid email.';
+    if (!allPasswordValid) newErrors.password = 'Password does not meet criteria.';
+    if (!passwordsMatch) newErrors.confirmPassword = 'Passwords do not match.';
 
     setErrors(newErrors);
-    return isValid;
+    return Object.keys(newErrors).length === 0;
   };
 
   useEffect(() => {
@@ -83,12 +94,15 @@ export default function SignUp() {
         return;
       }
       const valid = await isAuthenticatedAsync();
-      if (valid) {
-        navigate('/dashboard');
-      }
+      if (valid) navigate('/dashboard');
     };
     checkAuth();
   }, [isLoggedIn, navigate]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,28 +111,20 @@ export default function SignUp() {
     setLoading(true);
     setServerError('');
 
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get('name');
-    const email = formData.get('email');
-    const password = formData.get('password');
-
     try {
       const response = await API.post(`/api/signup/`, {
-        name,
-        email,
-        password,
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
       });
 
       localStorage.setItem('access', response.data.access);
       localStorage.setItem('refresh', response.data.refresh);
-
       setIsLoggedIn(true);
     } catch (error) {
       if (
         error.response &&
-        error.response.data &&
-        typeof error.response.data.error === 'string' &&
-        error.response.data.error.includes('already exists')
+        error.response.data?.error?.includes('already exists')
       ) {
         setServerError('An account with this email already exists.');
       } else {
@@ -128,6 +134,13 @@ export default function SignUp() {
       setLoading(false);
     }
   };
+
+  const renderCheck = (condition) =>
+    condition ? (
+      <CheckCircle color="success" fontSize="small" />
+    ) : (
+      <Cancel color="disabled" fontSize="small" />
+    );
 
   return (
     <>
@@ -143,53 +156,107 @@ export default function SignUp() {
 
             {serverError && <Alert severity="error">{serverError}</Alert>}
 
-            <Box
-              component="form"
-              onSubmit={handleSubmit}
-              sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-            >
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <FormControl fullWidth>
-                <FormLabel htmlFor="name">Name</FormLabel>
+                <FormLabel>Name</FormLabel>
                 <TextField
-                  id="name"
                   name="name"
                   placeholder="John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
                   error={!!errors.name}
                   helperText={errors.name}
                   required
-                  fullWidth
                 />
               </FormControl>
 
               <FormControl fullWidth>
-                <FormLabel htmlFor="email">Email</FormLabel>
+                <FormLabel>Email</FormLabel>
                 <TextField
-                  id="email"
                   name="email"
                   type="email"
                   placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
                   error={!!errors.email}
                   helperText={errors.email}
                   required
-                  fullWidth
                 />
               </FormControl>
 
               <FormControl fullWidth>
-                <FormLabel htmlFor="password">Password</FormLabel>
+                <FormLabel>Password</FormLabel>
                 <TextField
-                  id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
                   error={!!errors.password}
                   helperText={errors.password}
                   required
-                  fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </FormControl>
 
-              <Button type="submit" variant="contained" fullWidth disabled={loading}>
+              <Box sx={{ pl: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  {renderCheck(passwordChecks.length)} At least 8 characters
+                </Typography><br />
+                <Typography variant="caption" color="text.secondary">
+                  {renderCheck(passwordChecks.uppercase)} One uppercase letter
+                </Typography><br />
+                <Typography variant="caption" color="text.secondary">
+                  {renderCheck(passwordChecks.lowercase)} One lowercase letter
+                </Typography><br />
+                <Typography variant="caption" color="text.secondary">
+                  {renderCheck(passwordChecks.number)} One number
+                </Typography><br />
+                <Typography variant="caption" color="text.secondary">
+                  {renderCheck(passwordChecks.special)} One special character (!@#$%^&*)
+                </Typography>
+              </Box>
+
+              <FormControl fullWidth>
+                <FormLabel>Confirm Password</FormLabel>
+                <TextField
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  error={!!errors.confirmPassword}
+                  helperText={errors.confirmPassword}
+                  required
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          edge="end"
+                        >
+                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </FormControl>
+
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={loading || !allPasswordValid || !passwordsMatch}
+              >
                 {loading ? 'Signing up...' : 'Sign up'}
               </Button>
 
@@ -204,7 +271,7 @@ export default function SignUp() {
             <Divider sx={{ my: 2 }}>or</Divider>
 
             <Button fullWidth variant="outlined" startIcon={<GoogleIcon />}>
-              Sign up with Google Not functional yet
+              Sign up with Google (Coming Soon)
             </Button>
           </Card>
         </Box>
