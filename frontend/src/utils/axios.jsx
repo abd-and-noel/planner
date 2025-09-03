@@ -2,7 +2,7 @@ import axios from 'axios';
 import { refreshAccessToken } from './token';
 
 const API = axios.create({
-  baseURL: `http://${process.env.REACT_APP_ADDRESS}`,
+  baseURL: `${process.env.REACT_APP_ADDRESS}`,
 });
 
 // Request interceptor to add token if exists
