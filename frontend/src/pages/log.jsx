@@ -6,7 +6,6 @@ import {
   Divider,
   FormControl,
   FormLabel,
-  Link,
   Stack,
   TextField,
   Typography,
@@ -17,7 +16,7 @@ import {
 import { styled } from '@mui/material/styles';
 import { Google as GoogleIcon } from '@mui/icons-material';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Import Link from react-router-dom
 import { isAuthenticatedAsync } from '../utils/isAuthenticated.jsx';
 
 const address = process.env.REACT_APP_ADDRESS;
@@ -75,12 +74,12 @@ export default function Login() {
   useEffect(() => {
     const checkAuth = async () => {
       if (isLoggedIn) {
-        navigate('/Dashboard');
+        navigate('/dashboard'); // Changed from '/Dashboard' to '/dashboard' to match your route
         return;
       }
       const valid = await isAuthenticatedAsync();
       if (valid) {
-        navigate('/Dashboard');
+        navigate('/dashboard'); // Changed from '/Dashboard' to '/dashboard' to match your route
       }
     };
     checkAuth();
@@ -173,7 +172,7 @@ export default function Login() {
 
               <Typography textAlign="center">
                 Don't have an account?{' '}
-                <Link href="/signup" variant="body2">
+                <Link to="/signup" style={{ color: '#1976d2', textDecoration: 'none' }}>
                   Sign up
                 </Link>
               </Typography>
