@@ -147,7 +147,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     f"http://{ADDRESS}:3000",
-    "https://your-react-app.onrender.com",
+    "https://planner-1-ny39.onrender.com",
 ]
 
 AUTH_USER_MODEL = 'api.CustomUser'
