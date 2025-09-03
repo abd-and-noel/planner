@@ -148,6 +148,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     f"http://{ADDRESS}:3000",
     "https://planner-1-ny39.onrender.com",
+    "https://planner-2-hl7k.onrender.com",
 ]
 
 AUTH_USER_MODEL = 'api.CustomUser'
