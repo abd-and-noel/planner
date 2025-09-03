@@ -98,7 +98,7 @@ export default function Login() {
     const password = formData.get('password');
 
     try {
-      const response = await axios.post(`http://${address}:8000/api/login/`, {
+      const response = await axios.post(`http://${address}/api/login/`, {
         email: email,
         password: password,
       });

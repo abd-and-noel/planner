@@ -9,7 +9,7 @@ export const refreshAccessToken = async () => {
     }
 
     try{
-        const response = await axios.post(`http://${address}:8000/api/token/refresh/`, {
+        const response = await axios.post(`http://${address}/api/token/refresh/`, {
             refresh: refresh,
         });
         localStorage.setItem('access', response.data.access);
